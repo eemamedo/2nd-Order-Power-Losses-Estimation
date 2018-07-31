@@ -6,36 +6,36 @@ clear all
 
 dgbus = 18; %DG is connected at this bus. Bus is arbitrary
 bus69;
-Y;           
-busd = busdata;      
-BMva = 100E3;        
-bus = busd(:,1);     
-V = busd(:,2);       
+Y;
+busd = busdata;
+BMva = 100E3;
+bus = busd(:,1);
+V = busd(:,2);
 Vsp = busd(:,2);
-del = busd(:,3);     
-Pg = busd(:,4)/BMva; 
-Qg = busd(:,5)/BMva; 
-Pl = busd(:,6)/BMva; 
-Ql = busd(:,7)/BMva; 
+del = busd(:,3);
+Pg = busd(:,4)/BMva;
+Qg = busd(:,5)/BMva;
+Pl = busd(:,6)/BMva;
+Ql = busd(:,7)/BMva;
 Qmin = busd(:,8)/BMva;
 Qmax = busd(:,9)/BMva;
-type = busd(:,10);    
-P = Pg - Pl;          
-Q = Qg - Ql;          
-Psp = P;              
-Qsp = Q;              
+type = busd(:,10);
+P = Pg - Pl;
+Q = Qg - Ql;
+Psp = P;
+Qsp = Q;
 
-G = real(Y);          
-B = imag(Y);          
+G = real(Y);
+B = imag(Y);
 
-pv = find(type == 1);   
-pq = find(type == 3);               
-npv = length(pv);                   
-npq = length(pq);                   
+pv = find(type == 1);
+pq = find(type == 3);
+npv = length(pv);
+npq = length(pq);
 
 Tolerance = 1;
 Iteration = 1;
-while (Tolerance > 1e-5)   
+while (Tolerance > 1e-5)
 
     P = zeros(nbus,1);
     Q = zeros(nbus,1);
@@ -69,7 +69,7 @@ while (Tolerance > 1e-5)
         end
     end
     dP = dPa(2:nbus);
-    M = [dP; dQ];       
+    M = [dP; dQ];
 
     %J1 - Derivative of Real Power Injections with Angles
     J11 = zeros(nbus-1,nbus-1);
@@ -141,17 +141,17 @@ while (Tolerance > 1e-5)
         end
     end
 
-    J = [J11 J12; J21 J22];     
-    
-    X = inv(J)*M;           
-    dTh = X(1:nbus-1);      
-    dV = X(nbus:end);       
+    J = [J11 J12; J21 J22];
 
-    del(2:nbus) = dTh + del(2:nbus);    
+    X = inv(J)*M;
+    dTh = X(1:nbus-1);
+    dV = X(nbus:end);
+
+    del(2:nbus) = dTh + del(2:nbus);
     k = 1;
     for i = 1:nbus
         if type(i) == 3
-            V(i) = dV(k) + V(i);        
+            V(i) = dV(k) + V(i);
             k = k+1;
         else
             V(i)=Vsp(i);
@@ -159,7 +159,7 @@ while (Tolerance > 1e-5)
     end
 
     Iteration = Iteration + 1;
-    Tolerance = max(abs(M));                  
+    Tolerance = max(abs(M));
 
 end
 
@@ -193,8 +193,7 @@ QLoss_b = sum(Qloss_b)*BMva; %Qloss-b is the base loss from the pf equations
 QLoss_b
 
 
-clear k m j i n
-Ploss_del = zeros(nbus,1); 
+Ploss_del = zeros(nbus,1);
 for i = 1:(nbus)
     for j = 1:(nbus)
         if i~=j
@@ -205,7 +204,6 @@ for i = 1:(nbus)
     end
 end
 
-clear k m j i n
 Qloss_del = zeros(nbus,1);
 for i = 1:(nbus)
     for j = 1:(nbus)
@@ -217,7 +215,6 @@ for i = 1:(nbus)
     end
 end
 
-clear k m j i n
 Ploss_V = zeros(nbus,1); %derivative of P wrt to voltage
 for i = 1:(nbus)
     for j = 1:(nbus)
@@ -229,7 +226,6 @@ for i = 1:(nbus)
     end
 end
 
-clear k m j i n
 Qloss_V = zeros(nbus,1);
 for i = 1:(nbus)
     for j = 1:(nbus)
@@ -246,7 +242,7 @@ Pld = Ploss_del(1:end-1,1); Plv = Ploss_V(1:end-1,1);
 
 Qld = Qloss_del(1:end-1,1); Qlv = Qloss_V(1:end-1,1);
 
-N = [Pld; Plv]; 
+N = [Pld; Plv];
 M = [Qld; Qlv];
 
 J_apq = inv(J')*N;
@@ -282,7 +278,7 @@ Ploss = (PLoss_b + deltaPloss);
 Error_fo_p = abs ((Ploss-PLoss_b)/PLoss_b)*100;
 fprintf ('Error first order P %0.2f\n', Error_fo_p(dgbus,dgbus));
 
-deltaQloss = Pg*J_rp + Qg*J_rq; 
+deltaQloss = Pg*J_rp + Qg*J_rq;
 deltaQloss=deltaQloss*BMva;
 fprintf ('deltaQloss first order %0.2f\n', deltaQloss(dgbus,dgbus));
 Qloss = (QLoss_b + deltaQloss);
@@ -290,11 +286,10 @@ Error_fo_q = abs ((Qloss-QLoss_b)/QLoss_b)*100;
 fprintf ('Error first order Q %0.2f\n', Error_fo_q(dgbus,dgbus));
 
 % 2nd
-clear k m j i n
 Plossdd = zeros(nbus,nbus);
-for i = 1:nbus   
-    for j = 1:nbus        
-        if (i == j) 
+for i = 1:nbus
+    for j = 1:nbus
+        if (i == j)
             for n = 1:nbus
                 if (i~=n)
                     Plossdd(i,j) =  Plossdd(i,j)+(2*V(i)*V(n)*g(i,n)*cos(del(i)-del(n)));
@@ -306,14 +301,13 @@ for i = 1:nbus
     end
 end
 
-clear k m j i n
 PlossVV = zeros(nbus,nbus);
-for i = 1:nbus   
-    for j = 1:nbus        
+for i = 1:nbus
+    for j = 1:nbus
         if (i == j)
             for n = 1:nbus
                 if (i~=n)
-                    PlossVV(i,j) =  PlossVV(i,j) + 2*g(i,n); 
+                    PlossVV(i,j) =  PlossVV(i,j) + 2*g(i,n);
                 end
             end
         else
@@ -324,8 +318,8 @@ end
 
 clear k m j i n
 PlossdV = zeros(nbus,nbus);
-for i = 1:nbus   
-    for j = 1:nbus        
+for i = 1:nbus
+    for j = 1:nbus
         if (i == j)
             for n = 1:nbus
                 if (i~=n)
@@ -338,10 +332,9 @@ for i = 1:nbus
     end
 end
 
-clear k m j i n
 PlossVd = zeros(nbus,nbus);
-for i = 1:nbus   
-    for j = 1:nbus        
+for i = 1:nbus
+    for j = 1:nbus
         if (i == j)
             for n = 1:nbus
                 if (i~=n)
@@ -403,15 +396,14 @@ dPloss_so = 0.5*[Pg Qg]*[k_pp,k_pq;k_qp,k_qq]*[Pg;Qg];
 dPloss_so=dPloss_so*BMva;
 fprintf ('deltaPloss second order %0.2f\n', dPloss_so(dgbus-1,dgbus-1));
 Ploss_2 = PLoss_b+deltaPloss(dgbus,dgbus)+abs(dPloss_so(dgbus-1,dgbus-1));
-Error_so = abs ((Ploss_2-PLoss_b)/PLoss_b)*100; 
+Error_so = abs ((Ploss_2-PLoss_b)/PLoss_b)*100;
 fprintf ('Error second order P %0.2f\n', Error_so);
 
 % Second order for Q
-clear k m j i n
 Qlossdd = zeros(nbus,nbus);
-for i = 1:nbus   
-    for j = 1:nbus        
-        if (i == j) 
+for i = 1:nbus
+    for j = 1:nbus
+        if (i == j)
             for n = 1:nbus
                 if (i~=n)
                     Qlossdd(i,j) =  Qlossdd(i,j)+(2*V(i)*V(n)*(-b(i,n))*cos(del(i)-del(n)));
@@ -423,10 +415,9 @@ for i = 1:nbus
     end
 end
 
-clear k m j i n
 QlossVV = zeros(nbus,nbus);
-for i = 1:nbus   
-    for j = 1:nbus        
+for i = 1:nbus
+    for j = 1:nbus
         if (i == j)
             for n = 1:nbus
                 if (i~=n)
@@ -439,10 +430,9 @@ for i = 1:nbus
     end
 end
 
-clear k m j i n
 QlossdV = zeros(nbus,nbus);
-for i = 1:nbus   
-    for j = 1:nbus        
+for i = 1:nbus
+    for j = 1:nbus
         if (i == j)
             for n = 1:nbus
                 if (i~=n)
@@ -455,10 +445,9 @@ for i = 1:nbus
     end
 end
 
-clear k m j i n
 QlossVd = zeros(nbus,nbus);
-for i = 1:nbus   
-    for j = 1:nbus        
+for i = 1:nbus
+    for j = 1:nbus
         if (i == j)
             for n = 1:nbus
                 if (i~=n)
@@ -507,8 +496,8 @@ for i = 1:nbus-1
 end
 
 clear Pg Qg
-Pg = busd(:,4)/BMva;        
-Qg = busd(:,5)/BMva;        
+Pg = busd(:,4)/BMva;
+Qg = busd(:,5)/BMva;
 Pg = Pg(1:end-1);
 Qg = Qg(1:end-1);
 Pg = diag(Pg);
