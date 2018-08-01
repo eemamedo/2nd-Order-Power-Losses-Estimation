@@ -316,7 +316,6 @@ for i = 1:nbus
     end
 end
 
-clear k m j i n
 PlossdV = zeros(nbus,nbus);
 for i = 1:nbus
     for j = 1:nbus
